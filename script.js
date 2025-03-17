@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let projectsEndCursor = null;
     let hasNextPage = false;
     let isLoadingMore = false;
+    let slideshowIntervals = {}; // Store intervals for each project card
 
     // Function to format date
     function formatDate(dateString) {
@@ -40,6 +41,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    }
+
+    // Function to handle image slideshow for project cards
+    function startSlideshow(projectCard, projectId) {
+        if (slideshowIntervals[projectId]) return; // Already running
+        
+        const thumbnail = projectCard.querySelector('.project-card-thumbnail');
+        const originalSrc = thumbnail.src;
+        const projectData = projectCard.projectData;
+        
+        if (!projectData || !projectData.revisions || projectData.revisions.length <= 1) return;
+        
+        let currentIndex = 0;
+        const revisions = projectData.revisions;
+        
+        slideshowIntervals[projectId] = setInterval(() => {
+            currentIndex = (currentIndex + 1) % revisions.length;
+            const newSrc = revisions[currentIndex].current_screenshot_url;
+            
+            // Only change if the image is valid
+            const img = new Image();
+            img.onload = function() {
+                thumbnail.src = newSrc;
+            };
+            img.onerror = function() {
+                // Skip failed images
+                currentIndex = (currentIndex + 1) % revisions.length;
+                thumbnail.src = revisions[currentIndex].current_screenshot_url || originalSrc;
+            };
+            img.src = newSrc;
+        }, 1000);
+    }
+
+    function stopSlideshow(projectId) {
+        if (slideshowIntervals[projectId]) {
+            clearInterval(slideshowIntervals[projectId]);
+            delete slideshowIntervals[projectId];
+        }
     }
 
     // Function to switch between views
@@ -144,6 +183,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     `;
                     
+                    // Fetch all revisions for this project to enable slideshow
+                    fetchProjectRevisions(project.id).then(revisions => {
+                        projectCard.projectData = { revisions };
+                        
+                        // Add hover events for slideshow
+                        projectCard.addEventListener('mouseenter', () => {
+                            startSlideshow(projectCard, project.id);
+                        });
+                        
+                        projectCard.addEventListener('mouseleave', () => {
+                            stopSlideshow(project.id);
+                            // Reset to original thumbnail
+                            const thumbnail = projectCard.querySelector('.project-card-thumbnail');
+                            thumbnail.src = item.project_revision.current_screenshot_url;
+                        });
+                    });
+                    
                     projectCard.addEventListener('click', () => {
                         fetchProjectDetails(project.id);
                     });
@@ -193,6 +249,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadingEl.classList.add('hidden');
             }
             isLoadingMore = false;
+        }
+    }
+
+    // Helper function to fetch all revisions for a project
+    async function fetchProjectRevisions(projectId) {
+        try {
+            let allRevisions = [];
+            let hasMoreRevisions = true;
+            let cursor = null;
+            
+            while (hasMoreRevisions) {
+                const paginationParam = cursor ? `?after=${cursor}` : '';
+                const revisionsResponse = await fetch(`/api/v1/projects/${projectId}/revisions${paginationParam}`);
+                const revisionsData = await revisionsResponse.json();
+                
+                if (revisionsData.revisions.data.length > 0) {
+                    allRevisions = [...allRevisions, ...revisionsData.revisions.data.map(item => item.project_revision)];
+                    cursor = revisionsData.revisions.meta.end_cursor;
+                    hasMoreRevisions = revisionsData.revisions.meta.has_next_page;
+                } else {
+                    hasMoreRevisions = false;
+                }
+            }
+            
+            return allRevisions;
+        } catch (error) {
+            console.error('Error fetching revisions:', error);
+            return [];
         }
     }
 
@@ -367,6 +451,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Add scroll event listener for infinite scrolling
     window.addEventListener('scroll', handleScroll);
+
+    // Clean up all slideshows when leaving the page
+    window.addEventListener('beforeunload', () => {
+        Object.keys(slideshowIntervals).forEach(id => {
+            clearInterval(slideshowIntervals[id]);
+        });
+    });
 
     // Initial view
     switchView('search');

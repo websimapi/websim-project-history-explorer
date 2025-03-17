@@ -314,7 +314,17 @@ header p {
     min-height: 200px;
 }
 
+.project-details-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-gallery {
+    margin-top: 30px;
+}
+
 .project-card {
+    position: relative;
     border: 1px solid #eaeaea;
     border-radius: 8px;
     overflow: hidden;

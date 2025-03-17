@@ -41,8 +41,13 @@
         <div id="project-details" class="hidden">
             <a href="#" id="back-to-projects" class="back-button">← Back to Projects</a>
             
-            <div class="content" id="content">
-                <div class="project-header">
+            <div class="content project-details-container" id="content">
+                <div class="versions-container">
+                    <h3>Version History</h3>
+                    <div id="versions-timeline"></div>
+                </div>
+                
+                <div class="project-header project-gallery">
                     <div class="project-info">
                         <h2 id="project-title">Project Title</h2>
                         <p>by <a id="author-link" href="#"><img id="author-avatar" src="" alt="Author avatar"><span id="author-name">Username</span></a></p>
@@ -57,11 +62,6 @@
                         </div>
                         <a id="project-link" href="#" target="_blank" class="view-project">View Project</a>
                     </div>
-                </div>
-                
-                <div class="versions-container">
-                    <h3>Version History</h3>
-                    <div id="versions-timeline"></div>
                 </div>
             </div>
         </div>
