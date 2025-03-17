@@ -15,6 +15,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const commentsCount = document.getElementById('comments-count');
     const projectLink = document.getElementById('project-link');
     const refreshBtn = document.getElementById('refresh-btn');
+    const searchForm = document.getElementById('search-form');
+    const usernameInput = document.getElementById('username-input');
+    const searchContainer = document.getElementById('search-container');
+    const userProjectsContainer = document.getElementById('user-projects');
+    const projectDetailsContainer = document.getElementById('project-details');
+    const userHeading = document.getElementById('user-heading');
+    const backToProjectsBtn = document.getElementById('back-to-projects');
+
+    // App state
+    let currentUser = null;
+    let currentView = 'search'; // 'search', 'projects', 'details'
+    let projectsEndCursor = null;
+    let hasNextPage = false;
+    let isLoadingMore = false;
 
     // Function to format date
     function formatDate(dateString) {
@@ -28,29 +42,168 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Function to fetch and display a random project
-    async function fetchRandomProject() {
+    // Function to switch between views
+    function switchView(view) {
+        currentView = view;
+        
+        // Hide all containers first
+        searchContainer.classList.add('hidden');
+        userProjectsContainer.classList.add('hidden');
+        projectDetailsContainer.classList.add('hidden');
+        
+        // Show appropriate container based on view
+        if (view === 'search') {
+            searchContainer.classList.remove('hidden');
+        } else if (view === 'projects') {
+            userProjectsContainer.classList.remove('hidden');
+        } else if (view === 'details') {
+            projectDetailsContainer.classList.remove('hidden');
+        }
+    }
+
+    // Function to fetch user projects
+    async function fetchUserProjects(username, afterCursor = null, reset = true) {
+        if (reset) {
+            loadingEl.classList.remove('hidden');
+            projectsEndCursor = null;
+            hasNextPage = false;
+        } else {
+            // Add loading indicator at the bottom
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'infinite-scroll-loader';
+            loadingIndicator.innerHTML = `
+                <svg width="30" height="30" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="#3498db" stroke-width="4"></circle>
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="#f3f3f3" stroke-width="4" 
+                           stroke-dasharray="125.6" stroke-dashoffset="125.6" class="loader-circle"></circle>
+                </svg>
+            `;
+            userProjectsContainer.appendChild(loadingIndicator);
+        }
+        
+        isLoadingMore = true;
+        
+        try {
+            // Fetch user info first to validate the username (only on first load)
+            if (reset) {
+                const userResponse = await fetch(`/api/v1/users/${username}`);
+                if (!userResponse.ok) {
+                    throw new Error('User not found');
+                }
+                
+                const userData = await userResponse.json();
+                currentUser = userData.user;
+                
+                // Update UI with user info
+                userHeading.innerHTML = `
+                    <img src="${currentUser.avatar_url || 'https://images.websim.ai/avatar/default'}" alt="${currentUser.username}'s avatar">
+                    <h2>@${currentUser.username}'s Projects</h2>
+                `;
+                
+                // Clear container if reset
+                userProjectsContainer.innerHTML = '';
+                // Re-add the heading
+                userProjectsContainer.appendChild(userHeading);
+            }
+            
+            // Fetch user's projects with pagination
+            const paginationParam = afterCursor ? `&after=${afterCursor}` : '';
+            const projectsResponse = await fetch(`/api/v1/users/${username}/projects?first=20${paginationParam}`);
+            const projectsData = await projectsResponse.json();
+            
+            // Update pagination state
+            projectsEndCursor = projectsData.projects.meta.end_cursor;
+            hasNextPage = projectsData.projects.meta.has_next_page;
+            
+            // Remove loading indicator if not the first load
+            if (!reset) {
+                const loadingIndicator = userProjectsContainer.querySelector('.infinite-scroll-loader');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+            }
+            
+            // Create project cards
+            if (projectsData.projects.data.length === 0 && reset) {
+                const noProjectsDiv = document.createElement('div');
+                noProjectsDiv.className = 'no-projects';
+                noProjectsDiv.textContent = 'No public projects found for this user';
+                userProjectsContainer.appendChild(noProjectsDiv);
+            } else {
+                for (const item of projectsData.projects.data) {
+                    const project = item.project;
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'project-card';
+                    projectCard.dataset.projectId = project.id;
+                    
+                    projectCard.innerHTML = `
+                        <img class="project-card-thumbnail" src="${item.project_revision.current_screenshot_url}" alt="${project.title || 'Untitled Project'}">
+                        <div class="project-card-info">
+                            <div class="project-card-title">${project.title || 'Untitled Project'}</div>
+                            <div class="project-card-date">${formatDate(project.created_at)}</div>
+                        </div>
+                    `;
+                    
+                    projectCard.addEventListener('click', () => {
+                        fetchProjectDetails(project.id);
+                    });
+                    
+                    userProjectsContainer.appendChild(projectCard);
+                }
+                
+                // Show "no more results" if we've reached the end
+                if (!hasNextPage && !reset) {
+                    const endMessage = document.createElement('div');
+                    endMessage.className = 'infinite-scroll-complete';
+                    endMessage.textContent = 'No more projects to load';
+                    userProjectsContainer.appendChild(endMessage);
+                }
+            }
+            
+            // Switch to projects view if this is initial load
+            if (reset) {
+                switchView('projects');
+            }
+            
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            
+            if (reset) {
+                userProjectsContainer.innerHTML = `
+                    <div class="no-projects">
+                        <p>Error: ${error.message}</p>
+                        <button onclick="location.reload()" class="refresh-button">Try Again</button>
+                    </div>
+                `;
+                switchView('projects');
+            } else {
+                // Show error at the bottom for infinite scroll
+                const loadingIndicator = userProjectsContainer.querySelector('.infinite-scroll-loader');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+                
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'infinite-scroll-complete';
+                errorMessage.textContent = `Error loading more projects: ${error.message}`;
+                userProjectsContainer.appendChild(errorMessage);
+            }
+        } finally {
+            if (reset) {
+                loadingEl.classList.add('hidden');
+            }
+            isLoadingMore = false;
+        }
+    }
+
+    // Function to fetch and display a project's details
+    async function fetchProjectDetails(projectId) {
         // Show loading, hide content
         loadingEl.classList.remove('hidden');
         contentEl.classList.add('hidden');
         versionsTimeline.innerHTML = '';
 
         try {
-            // Fetch trending projects first
-            const trendingResponse = await fetch('/api/v1/feed/trending?first=50');
-            const trendingData = await trendingResponse.json();
-            
-            if (!trendingData.feed || !trendingData.feed.data || trendingData.feed.data.length === 0) {
-                throw new Error('No trending projects found');
-            }
-            
-            // Select a random project from the trending list
-            const randomIndex = Math.floor(Math.random() * trendingData.feed.data.length);
-            const randomProject = trendingData.feed.data[randomIndex];
-            
-            // Get the project ID
-            const projectId = randomProject.project.id;
-            
             // Fetch complete project details
             const projectResponse = await fetch(`/api/v1/projects/${projectId}`);
             const projectData = await projectResponse.json();
@@ -82,7 +235,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             projectDescription.textContent = projectData.project.description || 'No description available';
             
             // Set the current thumbnail
-            const currentRevisionId = projectData.project_revision.id;
             currentThumbnail.src = projectData.project_revision.current_screenshot_url || '';
             
             // Update project stats
@@ -139,6 +291,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadingEl.classList.add('hidden');
             contentEl.classList.remove('hidden');
             
+            // Switch to project details view
+            switchView('details');
+            
         } catch (error) {
             console.error('Error fetching project data:', error);
             loadingEl.innerHTML = `
@@ -148,9 +303,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Initial fetch
-    fetchRandomProject();
+    // Random project fetch (for the refresh button)
+    async function fetchRandomProject() {
+        // Show loading, hide content
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        versionsTimeline.innerHTML = '';
+
+        try {
+            // Fetch trending projects first
+            const trendingResponse = await fetch('/api/v1/feed/trending?first=50');
+            const trendingData = await trendingResponse.json();
+            
+            if (!trendingData.feed || !trendingData.feed.data || trendingData.feed.data.length === 0) {
+                throw new Error('No trending projects found');
+            }
+            
+            // Select a random project from the trending list
+            const randomIndex = Math.floor(Math.random() * trendingData.feed.data.length);
+            const randomProject = trendingData.feed.data[randomIndex];
+            
+            // Get the project ID and fetch details
+            const projectId = randomProject.project.id;
+            await fetchProjectDetails(projectId);
+            
+        } catch (error) {
+            console.error('Error fetching random project:', error);
+            loadingEl.innerHTML = `
+                <p>Failed to load project data. Please try again.</p>
+                <button onclick="location.reload()" class="refresh-button">Retry</button>
+            `;
+        }
+    }
+
+    // Infinite scroll handler
+    function handleScroll() {
+        if (currentView !== 'projects' || isLoadingMore || !hasNextPage) return;
+        
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const contentHeight = document.body.offsetHeight;
+        
+        // Load more when user scrolls near the bottom (200px threshold)
+        if (contentHeight - scrollPosition < 200 && currentUser) {
+            fetchUserProjects(currentUser.username, projectsEndCursor, false);
+        }
+    }
+
+    // Event Listeners
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = usernameInput.value.trim();
+        if (username) {
+            fetchUserProjects(username);
+        }
+    });
     
-    // Refresh button event listener
+    backToProjectsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('projects');
+    });
+    
     refreshBtn.addEventListener('click', fetchRandomProject);
+    
+    // Add scroll event listener for infinite scrolling
+    window.addEventListener('scroll', handleScroll);
+
+    // Initial view
+    switchView('search');
 });

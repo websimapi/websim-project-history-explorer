@@ -9,42 +9,64 @@
     <div class="container">
         <header>
             <h1>Project History Explorer</h1>
-            <p>Discover the evolution of a random WebSim project</p>
+            <p>Explore projects and their prompt history</p>
         </header>
         
-        <div class="loading" id="loading">
+        <div class="loading hidden" id="loading">
             <svg width="50" height="50" viewBox="0 0 50 50">
                 <circle cx="25" cy="25" r="20" fill="none" stroke="#3498db" stroke-width="4"></circle>
                 <circle cx="25" cy="25" r="20" fill="none" stroke="#f3f3f3" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" class="loader-circle"></circle>
             </svg>
-            <p>Loading project data...</p>
+            <p>Loading data...</p>
         </div>
         
-        <div class="content hidden" id="content">
-            <div class="project-header">
-                <div class="project-info">
-                    <h2 id="project-title">Project Title</h2>
-                    <p>by <a id="author-link" href="#"><img id="author-avatar" src="" alt="Author avatar"><span id="author-name">Username</span></a></p>
-                    <p id="project-description">Project description</p>
-                </div>
-                <div class="project-thumbnail">
-                    <img id="current-thumbnail" src="" alt="Project thumbnail">
-                    <div class="project-stats">
-                        <div class="stat"><span id="views-count">0</span> Views</div>
-                        <div class="stat"><span id="likes-count">0</span> Likes</div>
-                        <div class="stat"><span id="comments-count">0</span> Comments</div>
-                    </div>
-                    <a id="project-link" href="#" target="_blank" class="view-project">View Project</a>
-                </div>
-            </div>
+        <div id="search-container" class="search-container">
+            <form id="search-form" class="search-form">
+                <input 
+                    type="text" 
+                    id="username-input" 
+                    class="search-input" 
+                    placeholder="Enter a WebSim username" 
+                    required
+                />
+                <button type="submit" class="search-button">Search Projects</button>
+            </form>
+        </div>
+        
+        <div id="user-projects" class="user-projects hidden">
+            <div id="user-heading" class="user-heading"></div>
+            <!-- Project cards will be added here dynamically -->
+        </div>
+        
+        <div id="project-details" class="hidden">
+            <a href="#" id="back-to-projects" class="back-button">← Back to Projects</a>
             
-            <div class="versions-container">
-                <h3>Version History</h3>
-                <div id="versions-timeline"></div>
+            <div class="content" id="content">
+                <div class="project-header">
+                    <div class="project-info">
+                        <h2 id="project-title">Project Title</h2>
+                        <p>by <a id="author-link" href="#"><img id="author-avatar" src="" alt="Author avatar"><span id="author-name">Username</span></a></p>
+                        <p id="project-description">Project description</p>
+                    </div>
+                    <div class="project-thumbnail">
+                        <img id="current-thumbnail" src="" alt="Project thumbnail">
+                        <div class="project-stats">
+                            <div class="stat"><span id="views-count">0</span> Views</div>
+                            <div class="stat"><span id="likes-count">0</span> Likes</div>
+                            <div class="stat"><span id="comments-count">0</span> Comments</div>
+                        </div>
+                        <a id="project-link" href="#" target="_blank" class="view-project">View Project</a>
+                    </div>
+                </div>
+                
+                <div class="versions-container">
+                    <h3>Version History</h3>
+                    <div id="versions-timeline"></div>
+                </div>
             </div>
         </div>
         
-        <button id="refresh-btn" class="refresh-button">Explore Another Random Project</button>
+        <button id="refresh-btn" class="refresh-button">Explore A Random Project</button>
     </div>
 
     <script src="script.js"></script>
