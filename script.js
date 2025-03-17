@@ -55,9 +55,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const projectResponse = await fetch(`/api/v1/projects/${projectId}`);
             const projectData = await projectResponse.json();
             
-            // Fetch project revisions
-            const revisionsResponse = await fetch(`/api/v1/projects/${projectId}/revisions`);
-            const revisionsData = await revisionsResponse.json();
+            // Fetch ALL project revisions with pagination handling
+            let allRevisions = [];
+            let hasMoreRevisions = true;
+            let cursor = null;
+            
+            while (hasMoreRevisions) {
+                const paginationParam = cursor ? `?after=${cursor}` : '';
+                const revisionsResponse = await fetch(`/api/v1/projects/${projectId}/revisions${paginationParam}`);
+                const revisionsData = await revisionsResponse.json();
+                
+                if (revisionsData.revisions.data.length > 0) {
+                    allRevisions = [...allRevisions, ...revisionsData.revisions.data];
+                    cursor = revisionsData.revisions.meta.end_cursor;
+                    hasMoreRevisions = revisionsData.revisions.meta.has_next_page;
+                } else {
+                    hasMoreRevisions = false;
+                }
+            }
             
             // Update project info
             projectTitle.textContent = projectData.project.title || 'Untitled Project';
@@ -79,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             projectLink.href = `https://websim.ai/p/${projectId}`;
             
             // Create and append version history items
-            const sortedRevisions = revisionsData.revisions.data
+            const sortedRevisions = allRevisions
                 .map(item => item.project_revision)
                 .sort((a, b) => a.version - b.version);
             
@@ -87,17 +102,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const versionItem = document.createElement('div');
                 versionItem.className = 'version-item';
                 
-                const versionPromptText = revision.site_id && revisionsData.revisions.data.find(
+                const versionPromptText = revision.site_id && allRevisions.find(
                     item => item.project_revision.id === revision.id
                 ).site ? 
-                revisionsData.revisions.data.find(
+                allRevisions.find(
                     item => item.project_revision.id === revision.id
                 ).site.prompt?.text || 'No prompt available' : 'No prompt available';
 
-                const promptType = revision.site_id && revisionsData.revisions.data.find(
+                const promptType = revision.site_id && allRevisions.find(
                     item => item.project_revision.id === revision.id
                 ).site ?
-                revisionsData.revisions.data.find(
+                allRevisions.find(
                     item => item.project_revision.id === revision.id
                 ).site.prompt?.type || 'unknown' : 'unknown';
                 
@@ -139,4 +154,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Refresh button event listener
     refreshBtn.addEventListener('click', fetchRandomProject);
 });
-
