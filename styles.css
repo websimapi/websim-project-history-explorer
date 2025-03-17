@@ -1,0 +1,277 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+header h1 {
+    font-size: 2.2rem;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.loader-circle {
+    animation: loader-animation 1.5s infinite linear;
+    transform-origin: center;
+}
+
+@keyframes loader-animation {
+    0% {
+        stroke-dashoffset: 125.6;
+        transform: rotate(0);
+    }
+    50% {
+        stroke-dashoffset: 0;
+        transform: rotate(180deg);
+    }
+    100% {
+        stroke-dashoffset: -125.6;
+        transform: rotate(360deg);
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.project-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.project-info {
+    flex: 2;
+}
+
+.project-info h2 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.project-info p {
+    margin-bottom: 10px;
+}
+
+.project-info a {
+    display: flex;
+    align-items: center;
+    color: #3498db;
+    text-decoration: none;
+    margin-bottom: 15px;
+}
+
+.project-info a:hover {
+    text-decoration: underline;
+}
+
+#author-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+#project-description {
+    color: #555;
+    line-height: 1.5;
+}
+
+.project-thumbnail {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#current-thumbnail {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+.project-stats {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.stat {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.stat span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.view-project {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.view-project:hover {
+    background-color: #2980b9;
+}
+
+.versions-container {
+    margin-top: 30px;
+}
+
+.versions-container h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+#versions-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.version-item {
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.version-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.version-number {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.version-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.version-prompt {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f7f9fb;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.version-prompt h4 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.version-prompt-text {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.version-thumbnail {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.version-thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.refresh-button {
+    margin-top: 30px;
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+    background-color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .project-header {
+        flex-direction: column;
+    }
+    
+    .versions-container {
+        overflow-x: auto;
+    }
+}
+

@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project History Explorer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project History Explorer</h1>
+            <p>Discover the evolution of a random WebSim project</p>
+        </header>
+        
+        <div class="loading" id="loading">
+            <svg width="50" height="50" viewBox="0 0 50 50">
+                <circle cx="25" cy="25" r="20" fill="none" stroke="#3498db" stroke-width="4"></circle>
+                <circle cx="25" cy="25" r="20" fill="none" stroke="#f3f3f3" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="125.6" class="loader-circle"></circle>
+            </svg>
+            <p>Loading project data...</p>
+        </div>
+        
+        <div class="content hidden" id="content">
+            <div class="project-header">
+                <div class="project-info">
+                    <h2 id="project-title">Project Title</h2>
+                    <p>by <a id="author-link" href="#"><img id="author-avatar" src="" alt="Author avatar"><span id="author-name">Username</span></a></p>
+                    <p id="project-description">Project description</p>
+                </div>
+                <div class="project-thumbnail">
+                    <img id="current-thumbnail" src="" alt="Project thumbnail">
+                    <div class="project-stats">
+                        <div class="stat"><span id="views-count">0</span> Views</div>
+                        <div class="stat"><span id="likes-count">0</span> Likes</div>
+                        <div class="stat"><span id="comments-count">0</span> Comments</div>
+                    </div>
+                    <a id="project-link" href="#" target="_blank" class="view-project">View Project</a>
+                </div>
+            </div>
+            
+            <div class="versions-container">
+                <h3>Version History</h3>
+                <div id="versions-timeline"></div>
+            </div>
+        </div>
+        
+        <button id="refresh-btn" class="refresh-button">Explore Another Random Project</button>
+    </div>
+
+    <script src="script.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
